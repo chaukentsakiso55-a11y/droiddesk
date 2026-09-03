@@ -1,6 +1,6 @@
 package com.cyberpulse.droiddesk
 
-import android.app.BatteryManager
+import android.os.BatteryManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -490,4 +490,3 @@ private fun batteryLevel(context: Context): Int {
     val manager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     return manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).coerceIn(0, 100)
 }
-
