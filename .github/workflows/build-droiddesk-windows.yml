@@ -43,8 +43,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p generated/DroidDesk
-          curl --fail --location --retry 3             "https://codeload.github.com/orailnoor/DroidDesk/tar.gz/${UPSTREAM_SHA}"             -o /tmp/droiddesk.tar.gz
-          tar -xzf /tmp/droiddesk.tar.gz             --strip-components=1             -C generated/DroidDesk
+          curl --fail --location --retry 3 \
+            "https://codeload.github.com/orailnoor/DroidDesk/tar.gz/${UPSTREAM_SHA}" \
+            -o /tmp/droiddesk.tar.gz
+          tar -xzf /tmp/droiddesk.tar.gz \
+            --strip-components=1 \
+            -C generated/DroidDesk
 
       - name: Apply Windows VM overlay
         run: python3 droiddesk-windows-overlay/patch_upstream.py generated/DroidDesk
@@ -61,19 +65,24 @@ jobs:
         working-directory: generated/DroidDesk/app
         run: flutter build apk --debug
 
-      - name: Prepare deliverables
+      - name: Prepare APK
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p deliverables
-          cp generated/DroidDesk/app/build/app/outputs/flutter-apk/app-debug.apk             deliverables/DroidDesk-Windows-Android.apk
-          sha256sum deliverables/DroidDesk-Windows-Android.apk             > deliverables/DroidDesk-Windows-Android.apk.sha256
-          tar -czf deliverables/DroidDesk-Windows-Source.tar.gz             -C generated DroidDesk
+          cp generated/DroidDesk/app/build/app/outputs/flutter-apk/app-debug.apk \
+            deliverables/DroidDesk-Windows-Android.apk
+          sha256sum deliverables/DroidDesk-Windows-Android.apk \
+            > deliverables/DroidDesk-Windows-Android.apk.sha256
+          ls -lh deliverables/
 
-      - name: Upload DroidDesk Windows build
+      - name: Upload DroidDesk Windows APK
         uses: actions/upload-artifact@v4
         with:
           name: DroidDesk-Windows-Android
-          path: deliverables/
+          path: |
+            deliverables/DroidDesk-Windows-Android.apk
+            deliverables/DroidDesk-Windows-Android.apk.sha256
           if-no-files-found: error
+          compression-level: 0
           retention-days: 30
