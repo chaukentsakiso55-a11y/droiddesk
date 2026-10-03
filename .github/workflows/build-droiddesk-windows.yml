@@ -1,0 +1,79 @@
+name: Build DroidDesk Windows APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "droiddesk-windows-overlay/**"
+      - ".github/workflows/build-droiddesk-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: droiddesk-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UPSTREAM_SHA: e23f197eb5c80d449b9b937b9e5fd0daf6fca407
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout overlay repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch pinned upstream DroidDesk
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p generated/DroidDesk
+          curl --fail --location --retry 3             "https://codeload.github.com/orailnoor/DroidDesk/tar.gz/${UPSTREAM_SHA}"             -o /tmp/droiddesk.tar.gz
+          tar -xzf /tmp/droiddesk.tar.gz             --strip-components=1             -C generated/DroidDesk
+
+      - name: Apply Windows VM overlay
+        run: python3 droiddesk-windows-overlay/patch_upstream.py generated/DroidDesk
+
+      - name: Resolve Flutter packages
+        working-directory: generated/DroidDesk/app
+        run: flutter pub get
+
+      - name: Verify Dart sources
+        working-directory: generated/DroidDesk/app
+        run: dart analyze lib
+
+      - name: Build installable debug APK
+        working-directory: generated/DroidDesk/app
+        run: flutter build apk --debug
+
+      - name: Prepare deliverables
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deliverables
+          cp generated/DroidDesk/app/build/app/outputs/flutter-apk/app-debug.apk             deliverables/DroidDesk-Windows-Android.apk
+          sha256sum deliverables/DroidDesk-Windows-Android.apk             > deliverables/DroidDesk-Windows-Android.apk.sha256
+          tar -czf deliverables/DroidDesk-Windows-Source.tar.gz             -C generated DroidDesk
+
+      - name: Upload DroidDesk Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DroidDesk-Windows-Android
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 30
