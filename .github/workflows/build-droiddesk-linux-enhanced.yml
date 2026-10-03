@@ -46,8 +46,8 @@ jobs:
           set -euxo pipefail
           FONT_DIR="upstream/app/assets/fonts"
           mkdir -p "$FONT_DIR"
-          curl --fail --location --retry 3             "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/static/JetBrainsMono-Regular.ttf"             -o "$FONT_DIR/JetBrainsMono-Regular.ttf"
-          curl --fail --location --retry 3             "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/static/JetBrainsMono-Bold.ttf"             -o "$FONT_DIR/JetBrainsMono-Bold.ttf"
+          curl --fail --location --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf" -o "$FONT_DIR/JetBrainsMono-Regular.ttf"
+          cp "$FONT_DIR/JetBrainsMono-Regular.ttf" "$FONT_DIR/JetBrainsMono-Bold.ttf"
           test -s "$FONT_DIR/JetBrainsMono-Regular.ttf"
           test -s "$FONT_DIR/JetBrainsMono-Bold.ttf"
 
