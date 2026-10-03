@@ -72,4 +72,8 @@ replace_once(
     "version: 1.0.2+102\n",
 )
 
+scratch = root / "app/test_ffi.dart"
+if scratch.exists():
+    scratch.unlink()
+
 print("Applied DroidDesk Enhanced Linux fixes.")
